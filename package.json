@@ -1,6 +1,6 @@
 {
   "name": "wkd-hash",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Generate WKD hashes for email addresses and usernames",
   "author": "Sivothayan",
   "license": "MIT",
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sivothayan/wkd-hash.git"
+    "url": "git+https://github.com/sivothajan/wkd-hash.git"
   },
   "keywords": [
     "wkd",
