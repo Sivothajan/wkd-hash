@@ -1,0 +1,10 @@
+{
+  "name": "wkd-hash",
+  "description": "Generate WKD hashes for email addresses and usernames",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js"
+  }
+}
