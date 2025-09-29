@@ -1,5 +1,8 @@
 /**
- * Compute WKD-style hash for an email or username
+ * Compute WKD-style hash for an email or username.
+ * - Accepts an email (only the local part is used) or a username
+ * - Lowercases input, hashes with SHA-1, encodes with z-base-32
+ * - Works in browsers and Node.js (with webcrypto fallback)
  */
 export async function wkdHash(input) {
   if (typeof input !== "string") return null;
@@ -16,10 +19,9 @@ export async function wkdHash(input) {
     localPart = trimmed.toLowerCase();
   }
 
-  // SHA-1 of the UTF-8 local part
-  const encoder = new TextEncoder();
-  const data = encoder.encode(localPart);
-  const sha1buf = await crypto.subtle.digest("SHA-1", data);
+  const subtle = await getSubtleCrypto();
+  const data = await encodeUtf8(localPart);
+  const sha1buf = await subtle.digest("SHA-1", data);
   const bytes = new Uint8Array(sha1buf);
 
   // z-base-32 encode
@@ -38,12 +40,30 @@ export async function wkdHash(input) {
   return out;
 }
 
-// Example usage:
-wkdHash("hi@sivothajan.me").then((hash) => {
-  console.log("For email (hi@sivothajan.me):", hash);
-});
-// → e.g. 'aeii9rmagouy1owpp7e5ftpxjof7h41n'
-wkdHash("hi").then((hash) => {
-  console.log("For username (hi):", hash);
-});
-// → e.g. 'aeii9rmagouy1owpp7e5ftpxjof7h41n'
+async function getSubtleCrypto() {
+  // Prefer global crypto (browser, Node 20+)
+  if (globalThis.crypto && globalThis.crypto.subtle)
+    return globalThis.crypto.subtle;
+  // Node fallback
+  try {
+    const mod = await import("node:crypto");
+    if (mod?.webcrypto?.subtle) return mod.webcrypto.subtle;
+  } catch (e) {
+    // ignore
+  }
+  throw new Error("Web Crypto subtle API not available in this environment");
+}
+
+async function encodeUtf8(text) {
+  if (typeof TextEncoder !== "undefined") {
+    return new TextEncoder().encode(text);
+  }
+  try {
+    const util = await import("node:util");
+    const Encoder = util?.TextEncoder;
+    if (Encoder) return new Encoder().encode(text);
+  } catch (e) {
+    // ignore
+  }
+  throw new Error("TextEncoder not available in this environment");
+}
