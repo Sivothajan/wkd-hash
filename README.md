@@ -17,9 +17,9 @@ npm install wkd-hash
 ### Node.js (ESM)
 
 ```js
-import { wkdHash } from "wkd-hash";
+import { wkdHash } from 'wkd-hash';
 
-const hash = await wkdHash("hi@sivothajan.me");
+const hash = await wkdHash('hi@example.com');
 console.log(hash); // "aeii9rmagouy1owpp7e5ftpxjof7h41n"
 ```
 
@@ -29,8 +29,8 @@ This package is ESM-only. From CommonJS, use a dynamic import:
 
 ```js
 (async () => {
-  const { wkdHash } = await import("wkd-hash");
-  const hash = await wkdHash("hi");
+  const { wkdHash } = await import('wkd-hash');
+  const hash = await wkdHash('hi');
   console.log(hash); // "aeii9rmagouy1owpp7e5ftpxjof7h41n"
 })();
 ```
@@ -41,8 +41,8 @@ Use via a bundler, or import directly from a CDN that supports ESM:
 
 ```html
 <script type="module">
-  import { wkdHash } from "https://cdn.jsdelivr.net/npm/wkd-hash/+esm";
-  const hash = await wkdHash("user@example.com");
+  import { wkdHash } from 'https://cdn.jsdelivr.net/npm/wkd-hash/+esm';
+  const hash = await wkdHash('user@example.com');
   console.log(hash);
 </script>
 ```
@@ -62,7 +62,7 @@ export declare function wkdHash(input: string): Promise<string | null>;
 
 ## Examples
 
-- `wkdHash('hi@sivothajan.me')` → `aeii9rmagouy1owpp7e5ftpxjof7h41n`
+- `wkdHash('hi@example.com')` → `aeii9rmagouy1owpp7e5ftpxjof7h41n`
 - `wkdHash('hi')` → `aeii9rmagouy1owpp7e5ftpxjof7h41n` (same as above, only local-part is hashed)
 
 ## How it works

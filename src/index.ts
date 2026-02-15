@@ -4,8 +4,8 @@
  * - Lowercases input, hashes with SHA-1, encodes with z-base-32
  * - Works in browsers and Node.js (with webcrypto fallback)
  */
-export async function wkdHash(input) {
-  if (typeof input !== "string") return null;
+export async function wkdHash(input: string): Promise<string | null> {
+  if (typeof input !== 'string') return null;
 
   const trimmed = input.trim();
   let localPart;
@@ -21,15 +21,16 @@ export async function wkdHash(input) {
 
   const subtle = await getSubtleCrypto();
   const data = await encodeUtf8(localPart);
-  const sha1buf = await subtle.digest("SHA-1", data);
+  const dataBuffer: ArrayBuffer = data.buffer as ArrayBuffer;
+  const sha1buf = await subtle.digest('SHA-1', dataBuffer);
   const bytes = new Uint8Array(sha1buf);
 
   // z-base-32 encode
-  const alphabet = "ybndrfg8ejkmcpqxot1uwisza345h769";
-  let bits = "";
-  bytes.forEach((b) => (bits += b.toString(2).padStart(8, "0")));
+  const alphabet = 'ybndrfg8ejkmcpqxot1uwisza345h769';
+  let bits = '';
+  bytes.forEach((b) => (bits += b.toString(2).padStart(8, '0')));
 
-  let out = "";
+  let out = '';
   for (let i = 0; i < bits.length; i += 5) {
     const chunk = bits.slice(i, i + 5);
     if (chunk.length === 5) {
@@ -40,30 +41,34 @@ export async function wkdHash(input) {
   return out;
 }
 
-async function getSubtleCrypto() {
+import type { webcrypto } from 'node:crypto';
+
+async function getSubtleCrypto(): Promise<
+  SubtleCrypto | webcrypto.SubtleCrypto
+> {
   // Prefer global crypto (browser, Node 20+)
   if (globalThis.crypto && globalThis.crypto.subtle)
     return globalThis.crypto.subtle;
   // Node fallback
   try {
-    const mod = await import("node:crypto");
+    const mod = await import('node:crypto');
     if (mod?.webcrypto?.subtle) return mod.webcrypto.subtle;
   } catch (e) {
-    // ignore
+    console.error(e);
   }
-  throw new Error("Web Crypto subtle API not available in this environment");
+  throw new Error('Web Crypto subtle API not available in this environment');
 }
 
-async function encodeUtf8(text) {
-  if (typeof TextEncoder !== "undefined") {
+async function encodeUtf8(text: string): Promise<Uint8Array> {
+  if (typeof TextEncoder !== 'undefined') {
     return new TextEncoder().encode(text);
   }
   try {
-    const util = await import("node:util");
+    const util = await import('node:util');
     const Encoder = util?.TextEncoder;
     if (Encoder) return new Encoder().encode(text);
   } catch (e) {
-    // ignore
+    console.error(e);
   }
-  throw new Error("TextEncoder not available in this environment");
+  throw new Error('TextEncoder not available in this environment');
 }
