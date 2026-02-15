@@ -81,3 +81,7 @@ Web Crypto is used when available (`globalThis.crypto.subtle`), falling back to 
 - Environment requirements: modern browsers or Node >= 16. For best results and native `globalThis.crypto`, use Node 20+.
 
 ---
+
+## License
+
+[MIT](LICENSE) © [Sivothayan Sivasiva](https://sivothayan.com)
