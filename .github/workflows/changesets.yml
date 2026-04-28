@@ -1,0 +1,28 @@
+name: Changesets
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Create version PR
+        uses: changesets/action@v1
+        with:
+          version: bun run version-packages
+          commit: Version Packages
+          title: Version Packages
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
