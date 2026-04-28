@@ -1,0 +1,22 @@
+[
+  {
+    "input": "hi@example.com",
+    "expected": "aeii9rmagouy1owpp7e5ftpxjof7h41n"
+  },
+  {
+    "input": "hi",
+    "expected": "aeii9rmagouy1owpp7e5ftpxjof7h41n"
+  },
+  {
+    "input": "  Hi@Example.com  ",
+    "expected": "aeii9rmagouy1owpp7e5ftpxjof7h41n"
+  },
+  {
+    "input": "alice",
+    "expected": "kei1q4tipxxu1yj79k9kfukdhfy631xe"
+  },
+  {
+    "input": "Alice@example.com",
+    "expected": "kei1q4tipxxu1yj79k9kfukdhfy631xe"
+  }
+]

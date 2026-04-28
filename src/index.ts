@@ -1,61 +1,72 @@
+import type { webcrypto } from 'node:crypto';
+
+const Z_BASE_32_ALPHABET = 'ybndrfg8ejkmcpqxot1uwisza345h769';
+const EMAIL_LOCAL_PART_PATTERN = /^([^@]+)@/;
+
 /**
- * Compute WKD-style hash for an email or username.
- * - Accepts an email (only the local part is used) or a username
- * - Lowercases input, hashes with SHA-1, encodes with z-base-32
- * - Works in browsers and Node.js (with webcrypto fallback)
+ * Compute the WKD z-base-32 hash for an email or username.
+ * If an email address is provided, only the local-part is hashed.
  */
 export async function wkdHash(input: string): Promise<string | null> {
-  if (typeof input !== 'string') return null;
-
-  const trimmed = input.trim();
-  let localPart;
-
-  // If input looks like an email, use the local part
-  const emailMatch = trimmed.match(/^([^@]+)@/);
-  if (emailMatch) {
-    localPart = emailMatch[1].toLowerCase();
-  } else {
-    // Otherwise, treat whole input as the local part
-    localPart = trimmed.toLowerCase();
+  if (typeof input !== 'string') {
+    return null;
   }
 
+  const normalizedInput = normalizeInput(input);
+  const digest = await sha1Digest(await encodeUtf8(normalizedInput));
+
+  return encodeZBase32(digest);
+}
+
+function normalizeInput(input: string): string {
+  const trimmed = input.trim();
+  const emailMatch = trimmed.match(EMAIL_LOCAL_PART_PATTERN);
+
+  return (emailMatch?.[1] ?? trimmed).toLowerCase();
+}
+
+async function sha1Digest(data: Uint8Array): Promise<Uint8Array> {
   const subtle = await getSubtleCrypto();
-  const data = await encodeUtf8(localPart);
-  const dataBuffer: ArrayBuffer = data.buffer as ArrayBuffer;
-  const sha1buf = await subtle.digest('SHA-1', dataBuffer);
-  const bytes = new Uint8Array(sha1buf);
+  const buffer = new ArrayBuffer(data.byteLength);
+  new Uint8Array(buffer).set(data);
+  const digest = await subtle.digest('SHA-1', buffer);
 
-  // z-base-32 encode
-  const alphabet = 'ybndrfg8ejkmcpqxot1uwisza345h769';
+  return new Uint8Array(digest);
+}
+
+function encodeZBase32(bytes: Uint8Array): string {
   let bits = '';
-  bytes.forEach((b) => (bits += b.toString(2).padStart(8, '0')));
+  for (const byte of bytes) {
+    bits += byte.toString(2).padStart(8, '0');
+  }
 
-  let out = '';
+  let output = '';
   for (let i = 0; i < bits.length; i += 5) {
     const chunk = bits.slice(i, i + 5);
     if (chunk.length === 5) {
-      out += alphabet[parseInt(chunk, 2)];
+      output += Z_BASE_32_ALPHABET[parseInt(chunk, 2)];
     }
   }
 
-  return out;
+  return output;
 }
-
-import type { webcrypto } from 'node:crypto';
 
 async function getSubtleCrypto(): Promise<
   SubtleCrypto | webcrypto.SubtleCrypto
 > {
-  // Prefer global crypto (browser, Node 20+)
-  if (globalThis.crypto && globalThis.crypto.subtle)
+  if (globalThis.crypto?.subtle) {
     return globalThis.crypto.subtle;
-  // Node fallback
+  }
+
   try {
     const mod = await import('node:crypto');
-    if (mod?.webcrypto?.subtle) return mod.webcrypto.subtle;
-  } catch (e) {
-    console.error(e);
+    if (mod.webcrypto?.subtle) {
+      return mod.webcrypto.subtle;
+    }
+  } catch {
+    // Fall through to the final error for a cleaner library surface.
   }
+
   throw new Error('Web Crypto subtle API not available in this environment');
 }
 
@@ -63,12 +74,15 @@ async function encodeUtf8(text: string): Promise<Uint8Array> {
   if (typeof TextEncoder !== 'undefined') {
     return new TextEncoder().encode(text);
   }
+
   try {
     const util = await import('node:util');
-    const Encoder = util?.TextEncoder;
-    if (Encoder) return new Encoder().encode(text);
-  } catch (e) {
-    console.error(e);
+    if (util.TextEncoder) {
+      return new util.TextEncoder().encode(text);
+    }
+  } catch {
+    // Fall through to the final error for a cleaner library surface.
   }
+
   throw new Error('TextEncoder not available in this environment');
 }

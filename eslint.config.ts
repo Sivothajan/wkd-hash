@@ -2,17 +2,14 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default [
+  {
+    ignores: ['dist/**', 'node_modules/**'],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['**/*.{ts}'],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
+    files: ['src/**/*.ts', 'test/**/*.ts'],
     rules: {
-      // TypeScript rules
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -20,9 +17,18 @@ export default [
         },
       ],
       '@typescript-eslint/consistent-type-imports': 'error',
-      // General rules
       'no-console': 'warn',
       'no-unused-vars': 'off',
+    },
+  },
+  {
+    files: ['test/**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-undef': 'off',
     },
   },
 ];
