@@ -41,6 +41,7 @@
     "check:pack": "npm pack --dry-run",
     "clean": "rimraf dist",
     "format": "prettier --write .",
+    "format:runner": "node scripts/format-runner.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepublishOnly": "npm run lint && npm run typecheck && npm run typecheck:test && npm test && npm run check:pack",
@@ -49,7 +50,11 @@
     "test:node": "bun run build && node --test test/index.node.test.mjs test/index.cjs.test.cjs",
     "typecheck": "tsc --noEmit",
     "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "knip": "knip",
+    "knip:depcheck": "knip --dependencies",
+    "knip:fix": "knip --fix",
+    "prepare": "husky"
   },
   "prettier": {
     "printWidth": 80,
@@ -62,13 +67,21 @@
     "arrowParens": "always",
     "endOfLine": "auto"
   },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,json}": [
+      "npm run format:runner"
+    ]
+  },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.2",
     "@types/bun": "^1.3.13",
     "@types/node": "^25.6.0",
-    "eslint": "^10.2.1",
+    "eslint": "^9.39.2",
+    "husky": "^9.1.7",
     "jiti": "^2.6.1",
+    "knip": "^6.7.0",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
     "rimraf": "^6.1.3",
     "tsup": "^8.5.1",
